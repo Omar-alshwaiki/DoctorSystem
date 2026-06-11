@@ -50,7 +50,7 @@ export default {
   },
   methods: {
     fetchSlots() {
-      fetch("https://YOUR_API_GATEWAY_URL/prod/slots")
+      fetch("https://e3pn66ir39.execute-api.us-east-1.amazonaws.com/prod/slots")
         .then(res => res.json())
         .then(data => {
           let rawSlots = data.body ? (typeof data.body === 'string' ? JSON.parse(data.body) : data.body) : data;
@@ -74,7 +74,7 @@ export default {
         timeLabel: this.selectedSlot.time_label
       };
 
-      fetch("https://YOUR_API_GATEWAY_URL/prod/appointments", {
+      fetch("https://e3pn66ir39.execute-api.us-east-1.amazonaws.com/prod/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
