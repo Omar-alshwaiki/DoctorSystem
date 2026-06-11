@@ -7,7 +7,7 @@
       </div>
     </nav>
 
-    <div class="container">
+    <div class="container">  
       <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Appointments</h5>
@@ -59,7 +59,7 @@ export default {
   },
   methods: {
     fetchAppointments() {
-      fetch("https://YOUR_API_GATEWAY_URL/prod/appointments")
+      fetch("https://e3pn66ir39.execute-api.us-east-1.amazonaws.com/prod/appointments")
         .then(res => res.json())
         .then(data => {
           let list = data.body ? (typeof data.body === 'string' ? JSON.parse(data.body) : data.body) : data;
@@ -71,7 +71,7 @@ export default {
     },
     updateStatus(appointment, newStatus) {
       // Maps to your correct snake_case primary database key attribute
-      const url = `https://YOUR_API_GATEWAY_URL/prod/appointments/${appointment.appointment_id}`;
+      const url = `https://e3pn66ir39.execute-api.us-east-1.amazonaws.com/prod/appointments/${appointment.appointment_id}`;
       const payload = { status: newStatus };
 
       fetch(url, {
