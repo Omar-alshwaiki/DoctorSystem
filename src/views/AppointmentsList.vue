@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <nav class="navbar navbar-light bg-white shadow-sm mb-4">
@@ -10,8 +9,9 @@
 
     <div class="container">
       <div class="card shadow-sm">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Appointments</h5>
+          <button class="btn btn-sm btn-secondary" @click="fetchAppointments">Refresh</button>
         </div>
         <div class="card-body p-0">
           <table class="table table-bordered table-striped mb-0">
@@ -25,16 +25,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="appointment in appointments" :key="appointment.appointmentId">
+              <tr v-for="appointment in appointments" :key="appointment.appointment_id">
                 <td>{{ appointment.patientName }}</td>
                 <td>{{ appointment.symptoms }}</td>
                 <td>{{ appointment.slot }}</td>
                 <td>{{ appointment.status }}</td>
                 <td>
-                  <select class="form-select" :value="appointment.status" @change="e => updateStatus(appointment, e.target.value)">
-                    <option>Pending</option>
-                    <option>In Progress</option>
-                    <option>Completed</option>
+                  <select class="form-select form-select-sm" :value="appointment.status" @change="e => updateStatus(appointment, e.target.value)">
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
                   </select>
                 </td>
               </tr>
@@ -59,51 +59,37 @@ export default {
   },
   methods: {
     fetchAppointments() {
-      fetch("https://e3pn66ir39.execute-api.us-east-1.amazonaws.com/prod/appointments")
+      fetch("https://YOUR_API_GATEWAY_URL/prod/appointments")
         .then(res => res.json())
         .then(data => {
-          const parsed = JSON.parse(data.body);
-          this.appointments = parsed;
-        });
+          let list = data.body ? (typeof data.body === 'string' ? JSON.parse(data.body) : data.body) : data;
+          if (Array.isArray(list)) {
+            this.appointments = list;
+          }
+        })
+        .catch(err => console.error("Error fetching database records:", err));
     },
     updateStatus(appointment, newStatus) {
-      // Log the full appointment object and its ID
-      console.log(" appointment (proxy):", appointment);
-      const cleanAppointment = JSON.parse(JSON.stringify(appointment));
-      console.log(" Clean appointment:", cleanAppointment);
-      console.log("appointmentId:", cleanAppointment.appointmentId);
-      console.log(" appointmentId (direct):", appointment.appointmentId);
-
-      const url = `https://e3pn66ir39.execute-api.us-east-1.amazonaws.com/prod/appointments/${appointment.appointmentId}`;
-
+      // Maps to your correct snake_case primary database key attribute
+      const url = `https://YOUR_API_GATEWAY_URL/prod/appointments/${appointment.appointment_id}`;
       const payload = { status: newStatus };
 
       fetch(url, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
-          .then(async res => {
-
-            const rawBody = await res.text();
-
-            if (!res.ok) {
-              throw new Error(`HTTP ${res.status}: ${rawBody}`);
-            }
-
-            return JSON.parse(rawBody);
-          })
-          .then(() => {
-            alert("Status updated!");
-          })
-          .catch(err => {
-            console.error(" Failed to update status:", err);
-            alert("Update failed. See console for details.");
-          });
+        .then(async res => {
+          const rawBody = await res.text();
+          if (!res.ok) throw new Error(`HTTP ${res.status}: ${rawBody}`);
+          appointment.status = newStatus;
+          alert("Status updated!");
+        })
+        .catch(err => {
+          console.error("Failed to update status:", err);
+          alert("Update failed.");
+        });
     }
-
-     }
+  }
 };
 </script>
