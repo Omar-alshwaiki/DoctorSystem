@@ -41,7 +41,7 @@ export default {
     return {
       name: "",
       symptoms: "",
-      selectedSlot: "", // This will now hold the full selected object
+      selectedSlot: "",
       slots: []
     };
   },
@@ -50,14 +50,12 @@ export default {
   },
   methods: {
     fetchSlots() {
-      fetch("https://e3pn66ir39.execute-api.us-east-1.amazonaws.com/prod/slots")
+      fetch("https://YOUR_API_GATEWAY_URL/prod/slots")
         .then(res => res.json())
         .then(data => {
-          // Robust checking to handle API Gateway stringified bodies safely
           let rawSlots = data.body ? (typeof data.body === 'string' ? JSON.parse(data.body) : data.body) : data;
-          
           if (Array.isArray(rawSlots)) {
-            // MATCH YOUR DATABASE SCHEMA: filter by status === 'available'
+            // Filter using your correct string value flag
             this.slots = rawSlots.filter(s => s.status === 'available');
           }
         })
@@ -65,22 +63,21 @@ export default {
     },
     submitAppointment() {
       if (!this.selectedSlot) {
-        alert("Please select a valid time slot.");
+        alert("Please select a time slot.");
         return;
       }
 
-      // Payload matching what your database attributes expect
       const payload = {
         patientName: this.name,
         symptoms: this.symptoms,
-        slotId: this.selectedSlot.slot_id,       // Pass the actual database identifier key
-        timeLabel: this.selectedSlot.time_label   // Pass the display label string
+        slotId: this.selectedSlot.slot_id,
+        timeLabel: this.selectedSlot.time_label
       };
 
-      fetch("https://e3pn66ir39.execute-api.us-east-1.amazonaws.com/prod/appointments", {
+      fetch("https://YOUR_API_GATEWAY_URL/prod/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload) // FIXED: Removed double-nesting stringification error
+        body: JSON.stringify(payload)
       })
         .then(async res => {
           if (!res.ok) {
@@ -94,11 +91,11 @@ export default {
           this.name = "";
           this.symptoms = "";
           this.selectedSlot = "";
-          this.fetchSlots(); // Automatically reload the unbooked dropdown variables
+          this.fetchSlots();
         })
         .catch(err => {
           console.error("Error booking appointment:", err);
-          alert("Failed to book appointment. Make sure your target Lambda handles slot_id.");
+          alert("Failed to book appointment.");
         });
     }
   }
